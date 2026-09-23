@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Movie Master - Pro Admin (FIREBASE)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #e50914; --bg: #000; --card: #121212; --text: #fff; --border: #282828; --success: #2ecc71; --blue: #3498db; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding-bottom: 80px; }
+
+        /* Header */
+        .admin-header { background: var(--card); padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .online-indicator { display: flex; align-items: center; font-size: 10px; color: var(--success); font-weight: bold; border: 1px solid #1a5c34; padding: 4px 8px; border-radius: 20px; }
+        .pulse { width: 7px; height: 7px; background: var(--success); border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
+        .stat-box { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .stat-box h3 { margin: 0; font-size: 22px; color: var(--primary); }
+        .stat-box p { margin: 5px 0 0; font-size: 11px; color: #888; text-transform: uppercase; }
+
+        /* Control Boxes */
+        .control-section { padding: 10px 15px; }
+        .control-box { background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; }
+        .control-box label { display: block; margin-bottom: 8px; font-size: 12px; color: #888; text-transform: uppercase; font-weight: 600; }
+        .input-group { display: flex; gap: 10px; }
+        .input-group input, .input-group select { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid var(--border); color: #fff; border-radius: 8px; outline: none; }
+        .btn-set { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px; }
+
+        /* Pages */
+        .page { display: none; padding: 15px; animation: slideUp 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 12px; color: #888; }
+        input, select, textarea { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid var(--border); color: #fff; border-radius: 10px; font-size: 14px; outline: none; }
+        
+        .upload-btn { background: #222; border: 1px dashed #555; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; display: block; font-size: 13px; margin-top: 5px; color: #aaa; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; color: #fff; margin-top: 10px; }
+        .btn-save { background: var(--primary); }
+        .btn-cancel { background: #333; }
+
+        /* Item Cards */
+        .item-card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; border: 1px solid var(--border); }
+        .item-card img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; background: #222; }
+        .item-info { flex: 1; overflow: hidden; }
+        .item-info h4 { margin: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-info p { margin: 4px 0 0; font-size: 10px; color: #777; }
+        .actions { display: flex; gap: 15px; }
+        .actions i { font-size: 18px; cursor: pointer; padding: 5px; }
+
+        /* Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #080808; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border); z-index: 1000;}
+        .nav-item { text-align: center; color: #444; font-size: 9px; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { font-size: 18px; margin-bottom: 4px; display: block; }
+        
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:none; justify-content:center; align-items:center; }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><i class="fa fa-spinner fa-spin" style="color:var(--primary); font-size:40px;"></i></div>
+
+    <div class="admin-header">
+        <h2 style="color:var(--primary); margin:0; font-size: 18px;">MOVIE MASTER PRO</h2>
+        <div class="online-indicator"><div class="pulse"></div> FIREBASE LIVE</div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="page active">
+        <div class="stats-grid">
+            <div class="stat-box"><h3 id="stat-movies">0</h3><p>Movies</p></div>
+            <div class="stat-box"><h3 id="stat-channels" style="color:var(--blue)">0</h3><p>Channels</p></div>
+            <div class="stat-box"><h3 id="stat-sliders">0</h3><p>Sliders</p></div>
+            <div class="stat-box"><h3 id="stat-cats" style="color:var(--success)">0</h3><p>Categories</p></div>
+        </div>
+
+        <div class="control-section">
+            <div class="control-box">
+                <label><i class="fa fa-arrows-alt-h"></i> Category Scroll Limit</label>
+                <div class="input-group">
+                    <select id="limit-type-select" onchange="window.loadCurrentLimit()"></select>
+                    <input type="number" id="limit-val-input" placeholder="Qty">
+                    <button class="btn-set" onclick="window.saveCategoryLimit()">SET</button>
+                </div>
+            </div>
+            <div class="control-box">
+                <label><i class="fa fa-clock"></i> Slider Speed (Sec)</label>
+                <div class="input-group">
+                    <input type="number" id="slider-speed" placeholder="Sec (e.g. 3)">
+                    <button class="btn-set" onclick="window.setSlideSpeed()">SET</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live TV Manager -->
+    <div id="live-tv-admin" class="page">
+        <h3>Live TV Manager</h3>
+        <div class="control-box">
+            <input type="hidden" id="ch-id-key">
+            <div class="form-group"><label>Channel Name</label><input type="text" id="ch-title"></div>
+            <div class="form-group"><label>Channel Logo URL</label><input type="text" id="ch-thumb">
+                <label class="upload-btn"><input type="file" style="display:none" onchange="window.handleFile(this, 'ch-thumb')"><i class="fa fa-camera"></i> Upload Logo</label>
+            </div>
+            <div class="form-group"><label>Stream URL</label><input type="text" id="ch-video"></div>
+            <button class="btn btn-save" onclick="window.saveChannel()">Save Channel</button>
+            <button class="btn btn-cancel" onclick="window.resetChannelForm()">Cancel</button>
+        </div>
+        <div id="channel-list-container"></div>
+    </div>
+
+    <!-- Category Manager -->
+    <div id="category-page" class="page">
+        <h3>Category Manager</h3>
+        <div class="control-box">
+            <div class="form-group"><label>Category Name</label><input type="text" id="cat-name"></div>
+            <div class="form-group"><label>Icon (FontAwesome)</label><input type="text" id="cat-icon" placeholder="fa-bolt"></div>
+            <button class="btn btn-save" onclick="window.saveCategory()">Save Category</button>
+        </div>
+        <div id="category-list-container"></div>
+    </div>
+
+    <!-- Slider Manager -->
+    <div id="slider-page" class="page">
+        <h3>Slider Manager</h3>
+        <div class="control-box">
+            <input type="hidden" id="slide-id-key">
+            <div class="form-group"><label>Slider Image URL</label><input type="text" id="slide-img">
+                <label class="upload-btn"><input type="file" style="display:none" onchange="window.handleFile(this, 'slide-img')"><i class="fa fa-camera"></i> Upload</label>
+            </div>
+            <div class="form-group"><label>Redirect URL</label><input type="text" id="slide-url"></div>
+            <button class="btn btn-save" onclick="window.saveSlider()">Save Slider</button>
+            <button class="btn btn-cancel" onclick="window.resetSliderForm()">Cancel</button>
+        </div>
+        <div id="slider-list-container"></div>
+    </div>
+
+    <!-- Movie Add -->
+    <div id="add" class="page">
+        <h3 id="movie-form-title">Add Movie</h3>
+        <input type="hidden" id="edit-movie-key">
+        <div class="form-group"><label>Title</label><input type="text" id="m-title"></div>
+        <div class="form-group"><label>Description</label><textarea id="m-desc" rows="3" placeholder="Enter movie details..."></textarea></div>
+        <div class="form-group"><label>Order</label><input type="number" id="m-order"></div>
+        <div class="form-group"><label>Category</label><select id="m-cat"></select></div>
+        <div class="form-group"><label>Poster URL</label><input type="text" id="m-thumb">
+            <label class="upload-btn"><input type="file" style="display:none" onchange="window.handleFile(this, 'm-thumb')"><i class="fa fa-camera"></i> Upload</label>
+        </div>
+        <div class="form-group"><label>Video URL</label><textarea id="m-video" rows="2"></textarea></div>
+        <button class="btn btn-save" onclick="window.saveMovie()">Save Movie</button>
+        <button class="btn btn-cancel" onclick="window.resetMovieForm()">Cancel</button>
+    </div>
+
+    <!-- Library -->
+    <div id="list" class="page">
+        <div class="list-header"><h3>Library</h3><select id="lib-filter" onchange="window.renderMoviesList()"><option value="all">All</option></select></div>
+        <div id="movie-list-container"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="window.nav(this, 'dashboard')"><i class="fa fa-home"></i><p>Home</p></div>
+        <div class="nav-item" onclick="window.nav(this, 'live-tv-admin')"><i class="fa fa-broadcast-tower"></i><p>Live TV</p></div>
+        <div class="nav-item" onclick="window.nav(this, 'category-page')"><i class="fa fa-th-large"></i><p>Category</p></div>
+        <div class="nav-item" onclick="window.nav(this, 'slider-page')"><i class="fa fa-images"></i><p>Slider</p></div>
+        <div class="nav-item" onclick="window.nav(this, 'add')"><i class="fa fa-plus"></i><p>Add</p></div>
+        <div class="nav-item" onclick="window.nav(this, 'list')"><i class="fa fa-film"></i><p>Movies</p></div>
+    </div>
+
+    <!-- FIREBASE INITIALIZATION & ADMIN SCRIPTS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhdCiM-RmSboLe7KW3rjzdshO5SAA4sBI",
+            authDomain: "movies-master-59452.firebaseapp.com",
+            databaseURL: "https://movies-master-59452-default-rtdb.firebaseio.com",
+            projectId: "movies-master-59452",
+            storageBucket: "movies-master-59452.firebasestorage.app",
+            messagingSenderId: "814163494909",
+            appId: "1:814163494909:web:49a5ddce403bd06f453b94",
+            measurementId: "G-9XNC9SLSDL"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        isSupported().then(supported => { if(supported) getAnalytics(app); });
+
+        // Database State in memory
+        let dbData = {
+            movies: {},
+            channels: {},
+            sliders: {},
+            categories: {},
+            settings: { slideSpeed: 3, limit: 10 }
+        };
+
+        const loader = document.getElementById('loader');
+        const showLoader = () => { if(loader) loader.style.display = 'flex'; };
+        const hideLoader = () => { if(loader) loader.style.display = 'none'; };
+
+        // Real-time Firebase Listener
+        showLoader();
+        const rootDbRef = ref(db, '/');
+        onValue(rootDbRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                dbData.movies = data.movies || {};
+                dbData.channels = data.channels || {};
+                dbData.sliders = data.sliders || {};
+                dbData.categories = data.categories || {};
+                dbData.settings = data.settings || { slideSpeed: 3, limit: 10 };
+            }
+            refreshUI();
+            hideLoader();
+        }, (error) => {
+            console.error("Firebase Error:", error);
+            hideLoader();
+            alert("Error syncing with Firebase: " + error.message);
+        });
+
+        function refreshUI() {
+            window.updateStats();
+            window.updateCatDropdowns();
+            window.updateLimitDropdown();
+            window.renderChannels();
+            window.renderMoviesList();
+            window.renderSliders();
+            window.renderCategories();
+
+            if (dbData.settings && dbData.settings.slideSpeed) {
+                document.getElementById('slider-speed').value = dbData.settings.slideSpeed;
+            }
+            window.loadCurrentLimit();
+        }
+
+        window.nav = (el, pageId) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            if (el) el.classList.add('active');
+        };
+
+        window.handleFile = (input, targetId) => {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => document.getElementById(targetId).value = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        // --- CHANNEL MANAGEMENT (FIREBASE) ---
+        window.saveChannel = async () => {
+            const key = document.getElementById('ch-id-key').value;
+            const title = document.getElementById('ch-title').value.trim();
+            const thumb = document.getElementById('ch-thumb').value.trim();
+            const url = document.getElementById('ch-video').value.trim();
+
+            if (!title || !url) return alert("Title and Stream URL are required!");
+
+            const itemKey = key || 'ch_' + Date.now();
+            const channelObj = {
+                id: itemKey,
+                title: title,
+                thumb: thumb || 'https://via.placeholder.com/150',
+                url: url
+            };
+
+            showLoader();
+            try {
+                await set(ref(db, `channels/${itemKey}`), channelObj);
+                window.resetChannelForm();
+                alert("Channel saved to Firebase!");
+            } catch (err) {
+                alert("Save Failed: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.renderChannels = () => {
+            const container = document.getElementById('channel-list-container');
+            let html = '';
+            const channels = dbData.channels || {};
+            Object.keys(channels).forEach(key => {
+                const c = channels[key];
+                if (!c) return;
+                html += `
+                <div class="item-card">
+                    <img src="${c.thumb}">
+                    <div class="item-info"><h4>${c.title}</h4></div>
+                    <div class="actions">
+                        <i class="fa fa-edit" onclick="window.editChannel('${key}')" style="color:#f1c40f"></i>
+                        <i class="fa fa-trash" onclick="window.deleteItem('channels', '${key}')" style="color:#e74c3c"></i>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">No channels found.</p>';
+        };
+
+        window.editChannel = (key) => {
+            const c = dbData.channels[key];
+            if (!c) return;
+            document.getElementById('ch-id-key').value = key;
+            document.getElementById('ch-title').value = c.title;
+            document.getElementById('ch-thumb').value = c.thumb;
+            document.getElementById('ch-video').value = c.url;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.resetChannelForm = () => {
+            document.getElementById('ch-id-key').value = "";
+            document.getElementById('ch-title').value = "";
+            document.getElementById('ch-thumb').value = "";
+            document.getElementById('ch-video').value = "";
+        };
+
+        // --- MOVIE MANAGEMENT (FIREBASE) ---
+        window.saveMovie = async () => {
+            const key = document.getElementById('edit-movie-key').value;
+            const title = document.getElementById('m-title').value.trim();
+            const desc = document.getElementById('m-desc').value.trim();
+            const order = parseInt(document.getElementById('m-order').value) || 0;
+            const category = document.getElementById('m-cat').value;
+            const thumb = document.getElementById('m-thumb').value.trim();
+            const url = document.getElementById('m-video').value.trim();
+
+            if (!title) return alert("Title is required!");
+
+            const itemKey = key || 'mov_' + Date.now();
+            const movieObj = {
+                id: itemKey,
+                title: title,
+                desc: desc,
+                order: order,
+                category: category,
+                thumb: thumb || 'https://via.placeholder.com/300',
+                url: url,
+                hidden: false
+            };
+
+            showLoader();
+            try {
+                await set(ref(db, `movies/${itemKey}`), movieObj);
+                window.resetMovieForm();
+                alert("Movie saved to Firebase!");
+                window.nav(document.querySelectorAll('.nav-item')[5], 'list');
+            } catch (err) {
+                alert("Save Failed: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.renderMoviesList = () => {
+            const filterEl = document.getElementById('lib-filter');
+            const filter = filterEl ? filterEl.value : 'all';
+            const container = document.getElementById('movie-list-container');
+            let html = '';
+            const movies = dbData.movies || {};
+
+            Object.keys(movies).forEach(key => {
+                const m = movies[key];
+                if (!m) return;
+                if (filter === 'all' || m.category === filter) {
+                    html += `
+                    <div class="item-card">
+                        <img src="${m.thumb}">
+                        <div class="item-info">
+                            <h4>${m.title}</h4>
+                            <p>${m.category} | ${m.desc ? m.desc.substring(0,25)+'...' : 'No Desc'}</p>
+                        </div>
+                        <div class="actions">
+                            <i class="fa fa-edit" onclick="window.editMovie('${key}')" style="color:#f1c40f"></i>
+                            <i class="fa fa-trash" onclick="window.deleteItem('movies', '${key}')" style="color:#e74c3c"></i>
+                        </div>
+                    </div>`;
+                }
+            });
+            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">No movies found.</p>';
+        };
+
+        window.editMovie = (key) => {
+            const m = dbData.movies[key];
+            if (!m) return;
+            document.getElementById('edit-movie-key').value = key;
+            document.getElementById('m-title').value = m.title;
+            document.getElementById('m-desc').value = m.desc || "";
+            document.getElementById('m-order').value = m.order || 0;
+            document.getElementById('m-thumb').value = m.thumb;
+            document.getElementById('m-video').value = m.url;
+            document.getElementById('m-cat').value = m.category;
+            window.nav(document.querySelectorAll('.nav-item')[4], 'add');
+        };
+
+        window.resetMovieForm = () => {
+            document.getElementById('edit-movie-key').value = "";
+            document.getElementById('m-title').value = "";
+            document.getElementById('m-desc').value = "";
+            document.getElementById('m-order').value = "";
+            document.getElementById('m-thumb').value = "";
+            document.getElementById('m-video').value = "";
+        };
+
+        // --- CATEGORY MANAGEMENT (FIREBASE) ---
+        window.saveCategory = async () => {
+            const name = document.getElementById('cat-name').value.trim();
+            const icon = document.getElementById('cat-icon').value.trim() || 'fa-film';
+
+            if (!name) return alert("Category Name is required!");
+
+            const itemKey = 'cat_' + Date.now();
+            const catObj = {
+                id: itemKey,
+                name: name,
+                icon: icon,
+                limit: 10
+            };
+
+            showLoader();
+            try {
+                await set(ref(db, `categories/${itemKey}`), catObj);
+                document.getElementById('cat-name').value = "";
+                document.getElementById('cat-icon').value = "";
+                alert("Category added to Firebase!");
+            } catch (err) {
+                alert("Save Failed: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.renderCategories = () => {
+            const container = document.getElementById('category-list-container');
+            let html = '';
+            const categories = dbData.categories || {};
+
+            Object.keys(categories).forEach(key => {
+                const cat = categories[key];
+                if (!cat) return;
+                html += `
+                <div class="item-card">
+                    <div class="item-info">
+                        <h4>${cat.name}</h4>
+                        <p>Limit: ${cat.limit || 10}</p>
+                    </div>
+                    <i class="fa fa-trash" onclick="window.deleteItem('categories', '${key}')" style="color:#e74c3c; cursor:pointer; padding:5px;"></i>
+                </div>`;
+            });
+            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">No categories found.</p>';
+        };
+
+        // --- SLIDER MANAGEMENT (FIREBASE) ---
+        window.saveSlider = async () => {
+            const key = document.getElementById('slide-id-key').value;
+            const img = document.getElementById('slide-img').value.trim();
+            const url = document.getElementById('slide-url').value.trim();
+
+            if (!img) return alert("Image URL is required!");
+
+            const itemKey = key || 'slide_' + Date.now();
+            const slideObj = {
+                id: itemKey,
+                img: img,
+                url: url
+            };
+
+            showLoader();
+            try {
+                await set(ref(db, `sliders/${itemKey}`), slideObj);
+                window.resetSliderForm();
+                alert("Slider saved to Firebase!");
+            } catch (err) {
+                alert("Save Failed: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.renderSliders = () => {
+            const container = document.getElementById('slider-list-container');
+            let html = '';
+            const sliders = dbData.sliders || {};
+
+            Object.keys(sliders).forEach(key => {
+                const s = sliders[key];
+                if (!s) return;
+                html += `
+                <div class="item-card">
+                    <img src="${s.img}">
+                    <div class="item-info"><h4>Slider</h4></div>
+                    <div class="actions">
+                        <i class="fa fa-edit" onclick="window.editSlider('${key}')" style="color:#f1c40f"></i>
+                        <i class="fa fa-trash" onclick="window.deleteItem('sliders', '${key}')" style="color:#e74c3c"></i>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">No sliders found.</p>';
+        };
+
+        window.editSlider = (key) => {
+            const s = dbData.sliders[key];
+            if (!s) return;
+            document.getElementById('slide-id-key').value = key;
+            document.getElementById('slide-img').value = s.img;
+            document.getElementById('slide-url').value = s.url;
+        };
+
+        window.resetSliderForm = () => {
+            document.getElementById('slide-id-key').value = "";
+            document.getElementById('slide-img').value = "";
+            document.getElementById('slide-url').value = "";
+        };
+
+        // --- GENERAL ACTIONS (FIREBASE DELETE & SETTINGS) ---
+        window.deleteItem = async (section, key) => {
+            if (confirm("Are you sure you want to delete this from Firebase?")) {
+                showLoader();
+                try {
+                    await remove(ref(db, `${section}/${key}`));
+                    alert("Deleted successfully!");
+                } catch (err) {
+                    alert("Delete Failed: " + err.message);
+                } finally {
+                    hideLoader();
+                }
+            }
+        };
+
+        window.saveCategoryLimit = async () => {
+            const catKey = document.getElementById('limit-type-select').value;
+            const val = parseInt(document.getElementById('limit-val-input').value);
+            if (!catKey) return alert("Select Category First");
+            if (isNaN(val)) return alert("Please enter a valid number");
+
+            showLoader();
+            try {
+                await update(ref(db, `categories/${catKey}`), { limit: val });
+                alert("Category Limit Updated in Firebase!");
+            } catch (err) {
+                alert("Update Failed: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.setSlideSpeed = async () => {
+            const speed = parseInt(document.getElementById('slider-speed').value);
+            if (isNaN(speed) || speed < 1) return alert("Please enter a valid speed (seconds)");
+
+            showLoader();
+            try {
+                await update(ref(db, 'settings'), { slideSpeed: speed });
+                alert("Slider Speed Saved to Firebase!");
+            } catch (err) {
+                alert("Update Failed: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.updateStats = () => {
+            document.getElementById('stat-movies').innerText = Object.keys(dbData.movies || {}).length;
+            document.getElementById('stat-channels').innerText = Object.keys(dbData.channels || {}).length;
+            document.getElementById('stat-sliders').innerText = Object.keys(dbData.sliders || {}).length;
+            document.getElementById('stat-cats').innerText = Object.keys(dbData.categories || {}).length;
+        };
+
+        window.updateCatDropdowns = () => {
+            const movieCat = document.getElementById('m-cat');
+            const libFilter = document.getElementById('lib-filter');
+            let options = '';
+            const categories = dbData.categories || {};
+            Object.keys(categories).forEach(key => {
+                const cat = categories[key];
+                if (cat) options += `<option value="${cat.name}">${cat.name}</option>`;
+            });
+            if (movieCat) movieCat.innerHTML = options || '<option value="">No categories</option>';
+            if (libFilter) libFilter.innerHTML = '<option value="all">All</option>' + options;
+        };
+
+        window.updateLimitDropdown = () => {
+            const select = document.getElementById('limit-type-select');
+            if (!select) return;
+            const currentVal = select.value;
+            let options = '';
+            const categories = dbData.categories || {};
+            Object.keys(categories).forEach(key => {
+                const cat = categories[key];
+                if (cat) options += `<option value="${key}">${cat.name}</option>`;
+            });
+            select.innerHTML = options;
+            if (currentVal && categories[currentVal]) select.value = currentVal;
+        };
+
+        window.loadCurrentLimit = () => {
+            const key = document.getElementById('limit-type-select').value;
+            const categories = dbData.categories || {};
+            if (key && categories[key]) {
+                document.getElementById('limit-val-input').value = categories[key].limit || 10;
+            }
+        };
+    </script>
+</body>
+</html>
