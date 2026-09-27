@@ -81,64 +81,19 @@
         .dot { width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%; }
         .dot.active { background: var(--primary); width: 16px; border-radius: 10px; transition: 0.3s; }
 
-        /* ================= NETFLIX PRO VIDEO PLAYER & CONTROLS ================= */
-        .netflix-player-box {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #000;
-            overflow: hidden;
-            border-bottom: 1px solid var(--border);
-        }
-        
+        /* NETFLIX PRO VIDEO PLAYER & CONTROLS */
+        .netflix-player-box { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; border-bottom: 1px solid var(--border); }
         .plyr--video { height: 100%; width: 100%; background: #000; }
 
         /* Double Tap Skip Animation */
-        .skip-ripple {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 40%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            z-index: 20;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
+        .skip-ripple { position: absolute; top: 0; bottom: 0; width: 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.12); color: #fff; font-size: 13px; font-weight: 700; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .skip-left { left: 0; border-top-right-radius: 50%; border-bottom-right-radius: 50%; }
         .skip-right { right: 0; border-top-left-radius: 50%; border-bottom-left-radius: 50%; }
         .skip-ripple.show { opacity: 1; }
 
-        /* OTT / YouTube Style Action Buttons Bar */
-        .movie-actions-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin: 14px 0 16px;
-        }
-        .action-btn {
-            background: #161616;
-            border: 1px solid #282828;
-            color: #ccc;
-            border-radius: 12px;
-            padding: 10px 4px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            cursor: pointer;
-            font-size: 10px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
+        /* OTT Action Buttons Bar */
+        .movie-actions-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 16px; }
+        .action-btn { background: #161616; border: 1px solid #282828; color: #ccc; border-radius: 12px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; font-size: 10px; font-weight: 600; transition: all 0.2s ease; }
         .action-btn i { font-size: 17px; }
         .action-btn.active { background: rgba(229, 9, 20, 0.2); border-color: var(--primary); color: #fff; }
         .action-btn.active i { color: var(--primary); }
@@ -151,40 +106,14 @@
         .action-btn:active { transform: scale(0.93); }
 
         /* Fullscreen Landscape Cinema Mode */
-        .plyr--fullscreen-active {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            z-index: 999999 !important;
-            background: #000 !important;
-        }
+        .plyr--fullscreen-active { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: #000 !important; }
 
         @media (orientation: landscape) and (max-height: 520px) {
             #videoPage { padding-bottom: 0 !important; z-index: 99999 !important; }
             #videoPage .page-header { display: none !important; }
-            #moviePlayerWrapper {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                z-index: 99999 !important;
-            }
-            #livePage .video-fixed-top {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                z-index: 99999 !important;
-            }
-            .bottom-nav, #liveChannelInfo, #liveScrollContainer, #movieDetailsArea, .adsterra-ad-box, .adsterra-320x50-box {
-                display: none !important;
-            }
+            #moviePlayerWrapper { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 99999 !important; }
+            #livePage .video-fixed-top { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 99999 !important; }
+            .bottom-nav, #liveChannelInfo, #liveScrollContainer, #movieDetailsArea, .adsterra-ad-box, .adsterra-320x50-box { display: none !important; }
         }
 
         /* AD BOXES */
@@ -526,7 +455,7 @@
             renderHome(); initSlider(); initLiveChannels(); renderFavoritesPage();
         });
 
-        // ================= DIRECT VIDEO DOWNLOAD & SHARE ENGINE =================
+        // ================= DIRECT VIDEO DOWNLOAD & SHARE ENGINE (100% WORKING IN PAKISTAN) =================
         window.downloadDirectVideo = (url, title) => {
             if (!url) return alert("Video URL not found!");
 
@@ -540,16 +469,16 @@
                 a.click();
                 document.body.removeChild(a);
             } 
-            // 2. YouTube Video Download Helper
+            // 2. YouTube Video Download Helper (SSYouTube / SaveFrom - Open in Pakistan)
             else if (url.includes('youtube.com') || url.includes('youtu.be')) {
                 let vid = '';
                 if (url.includes('youtu.be/')) vid = url.split('youtu.be/')[1].split('?')[0];
                 else if (url.includes('v=')) vid = url.split('v=')[1].split('&')[0];
                 
                 if (vid) {
-                    window.open(`https://www.y2mate.com/youtube/${vid}`, '_blank');
+                    window.open(`https://ssyoutube.com/watch?v=${vid}`, '_blank');
                 } else {
-                    window.open(url, '_blank');
+                    window.open(`https://ssyoutube.com/`, '_blank');
                 }
             } 
             // 3. Fallback
@@ -756,7 +685,6 @@
             if(scrollBox) scrollBox.scrollTo({ top: 0, behavior: 'smooth' });
         };
         
-        // MOVIE DETAILS WITH 4 OTT ACTION BUTTONS (FAVORITE, DOWNLOAD, SHARE, REQUEST)
         window.playMovie = (id) => {
             const m = window.allMovies.find(x => String(x.id) === String(id));
             if(!m) return;
@@ -898,9 +826,8 @@
             document.getElementById(id).style.display = id === 'livePage' ? 'flex' : 'block';
             
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if(el) {
-                el.classList.add('active');
-            } else {
+            if(el) el.classList.add('active');
+            else {
                 const navIndex = id === 'homePage' ? 0 : id === 'livePage' ? 1 : id === 'searchPage' ? 2 : id === 'favPage' ? 3 : -1;
                 if(navIndex >= 0) document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
             }
