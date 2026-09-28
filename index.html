@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-    <title>Movie Master Pro - Ultimate Player</title>
+    <title>Movie Master Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -64,27 +64,6 @@
         #whatsappFloatingBtn { display: none; position: fixed; bottom: 82px; right: 15px; background: #25d366; color: #fff; width: 48px; height: 48px; border-radius: 50%; align-items: center; justify-content: center; font-size: 24px; z-index: 1600; box-shadow: 0 4px 16px rgba(37, 211, 102, 0.6); text-decoration: none; }
         #maintOverlay { display: none; position: fixed; inset: 0; background: #080808; z-index: 999999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px; }
 
-        /* DOWNLOAD TOAST */
-        #downloadToast {
-            display: none;
-            position: fixed;
-            top: 75px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a1a;
-            color: #fff;
-            border: 1px solid var(--success);
-            padding: 10px 18px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-            z-index: 999999;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         /* HEADER */
         header { padding: 0 15px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.95); position: sticky; top: 0; z-index: 1000; height: 60px; border-bottom: 1px solid var(--border); }
         .logo { color: var(--primary); font-weight: 700; font-size: 20px; letter-spacing: 1px; }
@@ -124,53 +103,6 @@
         .action-btn.request-btn { background: rgba(52, 152, 219, 0.15); border-color: rgba(52, 152, 219, 0.4); color: var(--blue); }
         .action-btn.request-btn i { color: var(--blue); }
         .action-btn:active { transform: scale(0.93); }
-
-        /* ================= IN-APP DOWNLOAD QUALITY MODAL ================= */
-        .download-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            z-index: 999999;
-            align-items: flex-end;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-        .download-modal-content {
-            width: 100%;
-            max-width: 480px;
-            background: #141414;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            border-top: 1px solid #2a2a2a;
-            padding: 20px;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.8);
-            animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .modal-header h4 { margin: 0; font-size: 15px; color: #fff; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .close-modal { font-size: 18px; color: #888; cursor: pointer; padding: 4px; }
-        .modal-movie-title { font-size: 12px; color: #aaa; margin: 0 0 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .quality-list { display: flex; flex-direction: column; gap: 8px; }
-        .quality-btn {
-            background: #1e1e1e;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 12px 14px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        .quality-btn:active { background: #e50914; transform: scale(0.98); }
-        .q-badge { background: #e50914; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-        .q-name { flex: 1; text-align: left; margin-left: 10px; font-size: 11px; }
 
         /* Fullscreen Landscape Cinema Mode */
         .plyr--fullscreen-active { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; background: #000 !important; }
@@ -237,49 +169,6 @@
 </head>
 <body>
 
-    <!-- IN-APP TOAST ALERT -->
-    <div id="downloadToast" style="display:none;">
-        <i class="fa fa-arrow-circle-down" style="color:var(--success); font-size:16px;"></i>
-        <span>Download started in notification bar!</span>
-    </div>
-
-    <!-- IN-APP DOWNLOAD QUALITY PICKER MODAL -->
-    <div id="downloadModal" class="download-modal-overlay">
-        <div class="download-modal-content">
-            <div class="modal-header">
-                <h4><i class="fa fa-download" style="color:var(--primary);"></i> Download Video</h4>
-                <i class="fa fa-times close-modal" onclick="window.closeDownloadModal()"></i>
-            </div>
-            <p id="downloadModalMovieTitle" class="modal-movie-title">Movie Title</p>
-            
-            <div class="quality-list">
-                <button class="quality-btn" onclick="window.startQualityDownload('1080p')">
-                    <span class="q-badge">1080p</span>
-                    <span class="q-name">Full HD Quality (Fast Server)</span>
-                    <i class="fa fa-arrow-down"></i>
-                </button>
-                <button class="quality-btn" onclick="window.startQualityDownload('720p')">
-                    <span class="q-badge">720p</span>
-                    <span class="q-name">Standard HD (Recommended)</span>
-                    <i class="fa fa-arrow-down"></i>
-                </button>
-                <button class="quality-btn" onclick="window.startQualityDownload('480p')">
-                    <span class="q-badge">480p</span>
-                    <span class="q-name">SD Quality (Low Data Saver)</span>
-                    <i class="fa fa-arrow-down"></i>
-                </button>
-                <button class="quality-btn" onclick="window.startQualityDownload('mp3')">
-                    <span class="q-badge" style="background:#25d366;">MP3</span>
-                    <span class="q-name">Audio Only (Song / Naat / Track)</span>
-                    <i class="fa fa-music"></i>
-                </button>
-            </div>
-            <p style="font-size:10px; color:#777; text-align:center; margin-top:12px;">
-                <i class="fa fa-shield-alt" style="color:var(--success);"></i> Direct Download to Phone Gallery / Storage
-            </p>
-        </div>
-    </div>
-
     <div id="maintOverlay">
         <i class="fa fa-tools" style="font-size:50px; color:var(--primary); margin-bottom:20px;"></i>
         <h2 style="margin:0 0 10px; color:#fff;">App Under Maintenance</h2>
@@ -328,7 +217,6 @@
 
     <!-- 1. HOME -->
     <div id="homePage" class="page">
-        <!-- SLIDER WITH < > ARROWS -->
         <div class="slider-container" id="sliderClickArea">
             <div class="slider-btn prev" onclick="window.slideManual(-1, event)"><i class="fa fa-chevron-left"></i></div>
             <div class="slider-btn next" onclick="window.slideManual(1, event)"><i class="fa fa-chevron-right"></i></div>
@@ -465,7 +353,7 @@
         <div class="nav-item" onclick="window.showNav('favPage', this)"><i class="fa fa-heart"></i>Favorites</div>
     </div>
 
-    <!-- FIREBASE, NETFLIX PLAYER & IN-APP DOWNLOAD ENGINE -->
+    <!-- FIREBASE, NETFLIX PLAYER & 100% REAL DOWNLOADER -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -508,10 +396,6 @@
         let searchDebounceTimer = null;
         let activeSliderIndex = 0;
         let lastTapTime = 0;
-
-        // Active Download Global Cache
-        let curDownloadUrl = '';
-        let curDownloadTitle = '';
 
         function reportLinkHealth(itemKey, status) {
             if (!itemKey) return;
@@ -567,63 +451,35 @@
             renderHome(); initSlider(); initLiveChannels(); renderFavoritesPage();
         });
 
-        // ================= IN-APP DIRECT DOWNLOAD ENGINE (NO WEBPAGES) =================
-        window.openDownloadModal = (url, title) => {
-            curDownloadUrl = url;
-            curDownloadTitle = title;
-            document.getElementById('downloadModalMovieTitle').innerText = title;
-            const modal = document.getElementById('downloadModal');
-            if (modal) modal.style.display = 'flex';
-        };
+        // ================= 100% ASLI DIRECT DOWNLOAD FUNCTION =================
+        window.handleDirectDownload = (url, title) => {
+            if (!url) return alert("Video URL not found!");
 
-        window.closeDownloadModal = () => {
-            const modal = document.getElementById('downloadModal');
-            if (modal) modal.style.display = 'none';
-        };
-
-        window.startQualityDownload = (quality) => {
-            window.closeDownloadModal();
-            const url = curDownloadUrl;
-            const title = curDownloadTitle;
-
-            // Show In-App Notification Toast
-            const toast = document.getElementById('downloadToast');
-            if (toast) {
-                toast.style.display = 'flex';
-                setTimeout(() => { toast.style.display = 'none'; }, 4000);
-            }
-
-            // 1. Direct MP4 / Catbox / Google Drive / Archive.org
+            // 1. Direct Video File (Catbox / Google Drive / Archive.org / Server)
             if (url.includes('.mp4') || url.includes('catbox.moe') || url.includes('googleusercontent.com') || url.includes('archive.org')) {
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${title}_${quality}.mp4`;
+                a.download = `${title}.mp4`;
                 a.target = '_blank';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
             } 
-            // 2. Direct Background Stream Downloader (Zero Webpage)
+            // 2. YouTube Video Download Link (Direct Working Link in Pakistan)
             else if (url.includes('youtube.com') || url.includes('youtu.be')) {
                 let vid = '';
                 if (url.includes('youtu.be/')) vid = url.split('youtu.be/')[1].split('?')[0];
                 else if (url.includes('v=')) vid = url.split('v=')[1].split('&')[0];
                 
-                // Direct background downloader trigger
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = `https://loader.to/api/button/?url=https://www.youtube.com/watch?v=${vid}&f=${quality==='mp3'?'mp3':'1080'}`;
-                document.body.appendChild(iframe);
-                setTimeout(() => { iframe.remove(); }, 5000);
+                if (vid) {
+                    window.open(`https://ssyoutube.com/watch?v=${vid}`, '_blank');
+                } else {
+                    window.open(url, '_blank');
+                }
             } 
-            // 3. Fallback direct trigger
+            // 3. Fallback
             else {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${title}.mp4`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                window.open(url, '_blank');
             }
         };
 
@@ -822,7 +678,7 @@
             if(scrollBox) scrollBox.scrollTo({ top: 0, behavior: 'smooth' });
         };
         
-        // MOVIE DETAILS WITH IN-APP ACTION BUTTONS
+        // MOVIE DETAILS WITH DIRECT DOWNLOAD & ACTIONS
         window.playMovie = (id) => {
             const m = window.allMovies.find(x => String(x.id) === String(id));
             if(!m) return;
@@ -849,7 +705,7 @@
                         <span>${isFavorite ? 'Saved' : 'Favorite'}</span>
                     </button>
                     
-                    <button class="action-btn download-btn" onclick="window.openDownloadModal('${mUrl}', '${mTitle}')">
+                    <button class="action-btn download-btn" onclick="window.handleDirectDownload('${mUrl}', '${mTitle}')">
                         <i class="fa fa-download"></i>
                         <span>Download</span>
                     </button>
@@ -963,8 +819,9 @@
             document.getElementById(id).style.display = id === 'livePage' ? 'flex' : 'block';
             
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if(el) el.classList.add('active');
-            else {
+            if(el) {
+                el.classList.add('active');
+            } else {
                 const navIndex = id === 'homePage' ? 0 : id === 'livePage' ? 1 : id === 'searchPage' ? 2 : id === 'favPage' ? 3 : -1;
                 if(navIndex >= 0) document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
             }
