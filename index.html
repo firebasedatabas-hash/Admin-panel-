@@ -333,12 +333,33 @@
         };
 
         window.handleFile = (input, targetId) => {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => document.getElementById(targetId).value = e.target.result;
-                reader.readAsDataURL(input.files[0]);
-            }
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Canvas create karke photo ka size 300px karna
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const maxWidth = 320;
+                const scaleSize = maxWidth / img.width;
+                canvas.width = maxWidth;
+                canvas.height = img.height * scaleSize;
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // 80% Compressed WebP/JPEG format me convert karna
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                document.getElementById(targetId).value = compressedDataUrl;
+            };
+            img.src = e.target.result;
         };
+        reader.readAsDataURL(file);
+    }
+};
 
         // ================= ASAL VIDEO & HLS STREAM PROBER =================
         function probeRealStream(url) {
