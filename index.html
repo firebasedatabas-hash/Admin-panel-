@@ -75,21 +75,48 @@
         .btn-reorder { font-size: 12px; padding: 6px 8px; cursor: pointer; background: #222; border-radius: 6px; color: #ccc; border: 1px solid #333; }
 
         /* Nav */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #080808; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 1000; height: 68px; }
-        .nav-item { text-align: center; color: #555; font-size: 9px; cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #080808; display: flex; overflow-x: auto; scrollbar-width: none; padding: 8px 4px; border-top: 1px solid var(--border); z-index: 1000; height: 68px; -webkit-overflow-scrolling: touch; }
+        .bottom-nav::-webkit-scrollbar { display: none; }
+        .nav-item { text-align: center; color: #555; font-size: 9px; cursor: pointer; min-width: 54px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
         .nav-item.active { color: var(--primary); }
         .nav-item i { font-size: 16px; margin-bottom: 3px; }
         
         #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:none; justify-content:center; align-items:center; }
+        
+        /* Master Security Lock Screen */
+        #security-guard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 999999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; box-sizing: border-box; text-align: center; }
+        .lock-card { background: #141414; border: 1px solid #2a2a2a; padding: 30px 20px; border-radius: 16px; width: 100%; max-width: 320px; box-shadow: 0 10px 30px rgba(229,9,20,0.2); }
+        .lock-icon { font-size: 45px; color: var(--primary); margin-bottom: 15px; animation: pulse 2s infinite; }
+        .lock-pin-input { width: 100%; letter-spacing: 8px; text-align: center; font-size: 22px; padding: 12px; background: #000; border: 2px solid #333; border-radius: 10px; color: #fff; margin-bottom: 12px; outline: none; }
+        .lock-pin-input:focus { border-color: var(--primary); }
+        .btn-unlock { width: 100%; padding: 13px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .lock-error { color: #e74c3c; font-size: 11px; margin-top: 10px; min-height: 16px; font-weight: 600; }
+        .btn-lock-header { background: #222; border: 1px solid #444; color: #ff4757; font-size: 11px; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body>
 
     <div id="loader"><i class="fa fa-spinner fa-spin" style="color:var(--primary); font-size:40px;"></i></div>
 
+    <!-- Master Security Lock Overlay -->
+    <div id="security-guard">
+        <div class="lock-card">
+            <i class="fa fa-user-shield lock-icon"></i>
+            <h3 style="margin: 0 0 5px 0; color: #fff;">Admin Security</h3>
+            <p style="color: #777; font-size: 11px; margin-bottom: 20px;">Restricted Area! Enter Master PIN</p>
+            <input type="password" id="admin-pass-input" class="lock-pin-input" maxlength="6" placeholder="••••" autocomplete="off">
+            <button class="btn-unlock" onclick="window.verifyAdminAccess()"><i class="fa fa-unlock-alt"></i> UNLOCK PANEL</button>
+            <div id="lock-msg" class="lock-error"></div>
+        </div>
+    </div>
+
     <div class="admin-header">
-        <h2 style="color:var(--primary); margin:0; font-size: 17px;"><i class="fa fa-shield-alt"></i> MOVIE MASTER PRO</h2>
-        <div class="online-indicator"><div class="pulse"></div> FIREBASE LIVE</div>
+        <h2 style="color:var(--primary); margin:0; font-size: 16px;"><i class="fa fa-shield-alt"></i> MOVIE MASTER</h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div class="online-indicator"><div class="pulse"></div> LIVE</div>
+            <button class="btn-lock-header" onclick="window.lockAdminNow()"><i class="fa fa-lock"></i></button>
+        </div>
     </div>
 
     <!-- 1. DASHBOARD -->
@@ -230,9 +257,39 @@
         <div id="custom-features-list"></div>
     </div>
 
+    <!-- 9. VIP PASS & CODES MANAGER -->
+    <div id="vip-page" class="page">
+        <h3 style="margin-top:0; color:#ffd700;"><i class="fa fa-crown"></i> VIP Codes Manager</h3>
+        <div class="control-box">
+            <div class="form-group">
+                <label>Generate Customer VIP Code</label>
+                <div class="input-group">
+                    <input type="text" id="vip-code-input" placeholder="Click GENERATE..." readonly style="font-weight:bold; letter-spacing:1px; color:#ffd700;">
+                    <button class="btn-set" onclick="window.generateAdminVIPCode()">GENERATE</button>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top:10px;">
+                <label>Select Plan Duration</label>
+                <select id="vip-plan-select">
+                    <option value="1">⏱️ 1 Day Pass (Trial)</option>
+                    <option value="7">📅 7 Days Pass (Weekly - Rs. 50)</option>
+                    <option value="30" selected>👑 30 Days Pass (Monthly - Rs. 150)</option>
+                    <option value="365">🌟 365 Days Pass (Yearly)</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-save" onclick="window.saveAdminVIPCode()" style="background:linear-gradient(135deg, #f39c12, #e67e22);"><i class="fa fa-save"></i> Save to Firebase & Copy Code</button>
+        </div>
+
+        <h4 style="border-left:3px solid #ffd700; padding-left:8px; margin:20px 0 10px;">All Generated VIP Codes</h4>
+        <div id="vip-codes-list-container"></div>
+    </div>
+
     <!-- BOTTOM NAVIGATION -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="window.nav(this, 'dashboard')"><i class="fa fa-home"></i>Home</div>
+        <div class="nav-item" onclick="window.nav(this, 'vip-page')"><i class="fa fa-crown" style="color:#ffd700;"></i>VIP</div>
         <div class="nav-item" onclick="window.nav(this, 'live-tv-admin')"><i class="fa fa-broadcast-tower"></i>Live TV</div>
         <div class="nav-item" onclick="window.nav(this, 'category-page')"><i class="fa fa-th-large"></i>Category</div>
         <div class="nav-item" onclick="window.nav(this, 'slider-page')"><i class="fa fa-images"></i>Slider</div>
@@ -280,25 +337,90 @@
         const showLoader = () => { if(loader) loader.style.display = 'flex'; };
         const hideLoader = () => { if(loader) loader.style.display = 'none'; };
 
-        // Real-time Firebase Listener
-        showLoader();
-        const rootDbRef = ref(db, '/');
-        onValue(rootDbRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                dbData.movies = data.movies || {};
-                dbData.channels = data.channels || {};
-                dbData.sliders = data.sliders || {};
-                dbData.categories = data.categories || {};
-                dbData.settings = data.settings || { slideSpeed: 3, limit: 10, notice: '', maintenance: false, features: {} };
+        // ================== POWERFUL ADMIN LOCK SYSTEM ==================
+        // Hamza Bhai yahan apna Secret PIN set karein (Default: 7860)
+        const MASTER_PIN = "7860"; 
+        let wrongTries = 0;
+        let isLockedByAttempts = false;
+
+        window.verifyAdminAccess = () => {
+            if (isLockedByAttempts) return;
+            const input = document.getElementById('admin-pass-input');
+            const msg = document.getElementById('lock-msg');
+            const val = input.value.trim();
+
+            if (val === MASTER_PIN) {
+                sessionStorage.setItem('admin_auth_status', 'GRANTED');
+                document.getElementById('security-guard').style.display = 'none';
+                input.value = '';
+                msg.innerText = '';
+                wrongTries = 0;
+                initFirebaseStream(); // Unlock hone ke baad hi data load hoga
+            } else {
+                wrongTries++;
+                input.value = '';
+                if (wrongTries >= 3) {
+                    isLockedByAttempts = true;
+                    let countdown = 30;
+                    const timer = setInterval(() => {
+                        msg.innerText = `Access Blocked! Wait ${countdown}s`;
+                        countdown--;
+                        if (countdown < 0) {
+                            clearInterval(timer);
+                            isLockedByAttempts = false;
+                            wrongTries = 0;
+                            msg.innerText = '';
+                        }
+                    }, 1000);
+                } else {
+                    msg.innerText = `Wrong PIN! ${3 - wrongTries} attempts left.`;
+                }
             }
-            refreshUI();
-            hideLoader();
-        }, (error) => {
-            console.error("Firebase Error:", error);
-            hideLoader();
-            alert("Error syncing with Firebase: " + error.message);
+        };
+
+        window.lockAdminNow = () => {
+            sessionStorage.removeItem('admin_auth_status');
+            document.getElementById('security-guard').style.display = 'flex';
+        };
+
+        // Enter key dabane par bhi unlock ho jaye
+        document.getElementById('admin-pass-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.verifyAdminAccess();
         });
+
+        // Check authentication state
+        function initFirebaseStream() {
+            showLoader();
+            const rootDbRef = ref(db, '/');
+            onValue(rootDbRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    dbData.movies = data.movies || {};
+                    dbData.channels = data.channels || {};
+                    dbData.sliders = data.sliders || {};
+                    dbData.categories = data.categories || {};
+                    dbData.settings = data.settings || { slideSpeed: 3, limit: 10, notice: '', maintenance: false, features: {} };
+                    dbData.vip_codes = data.vip_codes || {};
+                    
+                }
+                refreshUI();
+                hideLoader();
+            }, (error) => {
+                console.error("Firebase Error:", error);
+                hideLoader();
+                alert("Error syncing with Firebase: " + error.message);
+            });
+        }
+
+        // Auto check agar pehle se login hai
+        if (sessionStorage.getItem('admin_auth_status') === 'GRANTED') {
+            document.getElementById('security-guard').style.display = 'none';
+            initFirebaseStream();
+        }
+
+// Safe Guards taake loader kabhi na phanse
+        window.renderFeatures = window.renderFeatures || function() {};
+        window.renderAdminVIPCodes = window.renderAdminVIPCodes || function() {};
 
         function refreshUI() {
             window.updateStats();
@@ -309,7 +431,8 @@
             window.renderSliders();
             window.renderCategories();
             window.renderStatusLists();
-            window.renderFeatures();
+            if (typeof window.renderFeatures === 'function') window.renderFeatures();
+            if (typeof window.renderAdminVIPCodes === 'function') window.renderAdminVIPCodes();
 
             if (dbData.settings && dbData.settings.slideSpeed) {
                 document.getElementById('slider-speed').value = dbData.settings.slideSpeed;
@@ -333,33 +456,17 @@
         };
 
         window.handleFile = (input, targetId) => {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
 
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                // Canvas create karke photo ka size 300px karna
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                const maxWidth = 320;
-                const scaleSize = maxWidth / img.width;
-                canvas.width = maxWidth;
-                canvas.height = img.height * scaleSize;
-
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                // 80% Compressed WebP/JPEG format me convert karna
-                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById(targetId).value = compressedDataUrl;
-            };
-            img.src = e.target.result;
+                reader.onload = (e) => {
+                    // Original bina kisi compression ke 100% real photo direct save hogi
+                    document.getElementById(targetId).value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
         };
-        reader.readAsDataURL(file);
-    }
-};
 
         // ================= ASAL VIDEO & HLS STREAM PROBER =================
         function probeRealStream(url) {
@@ -930,22 +1037,75 @@
             }
         };
 
-        window.renderFeatures = () => {
-            const container = document.getElementById('custom-features-list');
+        // --- VIP CODES MANAGEMENT ---
+        window.generateAdminVIPCode = () => {
+            const rand = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('vip-code-input').value = `VIP-${rand}`;
+        };
+
+        window.saveAdminVIPCode = async () => {
+            const codeInput = document.getElementById('vip-code-input');
+            const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+            const days = parseInt(document.getElementById('vip-plan-select').value) || 30;
+
+            if (!code) return alert("Pehle GENERATE button daba kar code banayein!");
+
+            showLoader();
+            try {
+                await set(ref(db, `vip_codes/${code}`), {
+                    days: days,
+                    used: false,
+                    createdAt: Date.now()
+                });
+                codeInput.value = '';
+                navigator.clipboard.writeText(code).catch(()=>{});
+                alert(`✅ ${days} Din Ka Code "${code}" Kamyabi Se Save Aur Copy Ho Gaya!`);
+            } catch(e) {
+                alert("Save Failed: " + e.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        window.copyVIPCode = (code) => {
+            navigator.clipboard.writeText(code).then(() => {
+                alert(`📋 Code "${code}" Clipboard par Copy ho gaya!`);
+            }).catch(() => {
+                alert(`Code: ${code}`);
+            });
+        };
+
+        window.renderAdminVIPCodes = () => {
+            const container = document.getElementById('vip-codes-list-container');
             if (!container) return;
-            const feats = dbData.settings?.features || {};
+            const codes = dbData.vip_codes || {};
             let html = '';
-            Object.keys(feats).forEach(k => {
+
+            const sortedKeys = Object.keys(codes).reverse();
+
+            sortedKeys.forEach(code => {
+                const item = codes[code];
+                if (!item) return;
+                const isUsed = item.used === true;
                 html += `
                 <div class="item-card">
                     <div class="item-info">
-                        <h4>${k}</h4>
-                        <p>Value: ${feats[k]}</p>
+                        <h4>
+                            <span class="status-dot ${isUsed ? 'status-red' : 'status-green'}"></span>
+                            <b style="color:${isUsed ? '#888' : '#ffd700'}">${code}</b>
+                            <span style="font-size:10px; color:#aaa; margin-left:6px;">(${item.days || 30} Days)</span>
+                        </h4>
+                        <p style="color:${isUsed ? '#e74c3c' : '#2ecc71'};">
+                            ${isUsed ? '🔴 Used (Customer ne laga liya)' : '🟢 Active (Abhi free hai)'}
+                        </p>
                     </div>
-                    <i class="fa fa-trash" onclick="window.deleteItem('settings/features', '${k}')" style="color:#e74c3c; cursor:pointer; padding:5px;"></i>
+                    <div class="actions">
+                        <i class="fa fa-copy" onclick="window.copyVIPCode('${code}')" style="color:#3498db" title="Copy Code"></i>
+                        <i class="fa fa-trash" onclick="window.deleteItem('vip_codes', '${code}')" style="color:#e74c3c" title="Delete Code"></i>
+                    </div>
                 </div>`;
             });
-            container.innerHTML = html || '<p style="color:#666; font-size:12px; text-align:center;">No custom features added.</p>';
+            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">Filhal koi VIP Code nahi bana hua.</p>';
         };
 
         // --- GENERAL ACTIONS ---
