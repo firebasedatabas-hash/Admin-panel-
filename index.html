@@ -137,6 +137,13 @@
                     <button class="btn-set" onclick="window.saveCategoryLimit()">SET</button>
                 </div>
             </div>
+            
+            <!-- 📊 TOP MOST VIEWED MOVIES ANALYTICS -->
+            <div class="control-box" style="margin-top:15px; border-color:#e50914;">
+                <label style="color:#e50914;"><i class="fa fa-fire"></i> Top Trending & Most Viewed Content</label>
+                <div id="top-viewed-movies-list" style="margin-top:10px;"></div>
+            </div>
+            
             <div class="control-box">
                 <label><i class="fa fa-clock"></i> Slider Speed (Sec)</label>
                 <div class="input-group">
@@ -158,6 +165,14 @@
             </div>
             <div class="form-group"><label>Stream Video URL (.m3u8 / .mp4 / YouTube)</label><input type="text" id="ch-video" placeholder="https://..."></div>
             <button class="btn btn-save" onclick="window.saveChannel()">Save Channel</button>
+            
+            <!-- 👑 Channel VIP Checkbox -->
+            <div style="background:#161616; padding:10px 14px; border-radius:8px; border:1px solid #282828; margin-bottom:12px;">
+                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#ffd700; font-size:12px; font-weight:700; margin:0;">
+                    <input type="checkbox" id="ch-is-vip" style="width:16px; height:16px; accent-color:#ffd700;"> 👑 VIP Channel (Only for VIP Pass Users)
+                </label>
+            </div>
+            
             <button class="btn btn-cancel" onclick="window.resetChannelForm()">Cancel</button>
         </div>
         <div id="channel-list-container"></div>
@@ -195,7 +210,26 @@
     <div id="add" class="page">
         <h3 id="movie-form-title" style="margin-top:0;">Add Movie</h3>
         <input type="hidden" id="edit-movie-key">
+        <!-- 🚀 TMDB 1-Click Auto Importer -->
+        <div class="form-group" style="background:#1a1a24; padding:10px; border-radius:10px; border:1px solid #333;">
+            <label style="color:#00ffcc;"><i class="fa fa-magic"></i> 1-Click TMDB Auto-Fetch</label>
+            <div class="input-group">
+                <input type="text" id="tmdb-search-input" placeholder="Type movie name (e.g. Jawan, Leo)...">
+                <button type="button" class="btn-set" style="background:#00b4d8;" onclick="window.fetchFromTMDB()">FETCH</button>
+            </div>
+        </div>
+
         <div class="form-group"><label>Title</label><input type="text" id="m-title" placeholder="Movie title"></div>
+
+        <!-- 👑 Manual VIP & 🔴 LIVE Checkboxes -->
+        <div style="display:flex; gap:16px; background:#161616; padding:10px 14px; border-radius:8px; border:1px solid #282828; margin-bottom:12px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#ffd700; font-size:12px; font-weight:700; margin:0;">
+                <input type="checkbox" id="m-is-vip" style="width:16px; height:16px; accent-color:#ffd700;"> 👑 VIP Content
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; color:#ff4d4d; font-size:12px; font-weight:700; margin:0;">
+                <input type="checkbox" id="m-is-live" style="width:16px; height:16px; accent-color:#e50914;"> 🔴 Live Stream
+            </label>
+        </div>
         <div class="form-group"><label>Description</label><textarea id="m-desc" rows="3" placeholder="Movie overview..."></textarea></div>
         <div class="form-group"><label>Order / Priority</label><input type="number" id="m-order" placeholder="0"></div>
         <div class="form-group"><label>Category</label><select id="m-cat"></select></div>
@@ -418,12 +452,16 @@
             initFirebaseStream();
         }
 
-// Safe Guards taake loader kabhi na phanse
+// 🛡️ FULL CRASH-PROOF SAFE GUARDS (LOADER KABHI NAHI ATKEGA)
+        window.updateStats = window.updateStats || function() {};
+        window.renderTopAnalytics = window.renderTopAnalytics || function() {};
+        window.renderMoviesList = window.renderMoviesList || function() {};
         window.renderFeatures = window.renderFeatures || function() {};
         window.renderAdminVIPCodes = window.renderAdminVIPCodes || function() {};
 
         function refreshUI() {
             window.updateStats();
+           window.renderTopAnalytics();
             window.updateCatDropdowns();
             window.updateLimitDropdown();
             window.renderChannels();
@@ -655,12 +693,13 @@
             mList.innerHTML = mHtml || '<p style="color:#666; font-size:12px;">No movies found</p>';
         };
 
-        // --- CHANNEL MANAGEMENT ---
+        // --- CHANNEL MANAGEMENT (WITH MANUAL VIP TOGGLE) ---
         window.saveChannel = async () => {
             const key = document.getElementById('ch-id-key').value;
             const title = document.getElementById('ch-title').value.trim();
             const thumb = document.getElementById('ch-thumb').value.trim();
             const url = document.getElementById('ch-video').value.trim();
+            const isVip = document.getElementById('ch-is-vip').checked;
 
             if (!title) return alert("Title is required!");
 
@@ -669,7 +708,8 @@
                 id: itemKey,
                 title: title,
                 thumb: thumb || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=150',
-                url: url
+                url: url,
+                isVip: isVip
             };
 
             showLoader();
@@ -697,7 +737,7 @@
                 <div class="item-card">
                     <img src="${c.thumb}">
                     <div class="item-info">
-                        <h4><span class="status-dot ${dotClass}"></span>${c.title}</h4>
+                        <h4><span class="status-dot ${dotClass}"></span>${c.title} ${c.isVip ? '<span style="color:#ffd700; font-size:10px;">👑 VIP</span>' : ''}</h4>
                         <p>${c.url ? (c.url.substring(0,35)+'...') : 'No Stream URL'}</p>
                     </div>
                     <div class="actions">
@@ -716,6 +756,7 @@
             document.getElementById('ch-title').value = c.title;
             document.getElementById('ch-thumb').value = c.thumb;
             document.getElementById('ch-video').value = c.url;
+            document.getElementById('ch-is-vip').checked = !!c.isVip;
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -724,9 +765,38 @@
             document.getElementById('ch-title').value = "";
             document.getElementById('ch-thumb').value = "";
             document.getElementById('ch-video').value = "";
+            document.getElementById('ch-is-vip').checked = false;
         };
 
-        // --- MOVIE MANAGEMENT ---
+        // 🚀 TMDB 1-CLICK AUTO-FETCH FUNCTION
+        window.fetchFromTMDB = async () => {
+            const query = document.getElementById('tmdb-search-input').value.trim();
+            if (!query) return alert("Pehle movie ka naam likhein!");
+
+            showLoader();
+            try {
+                const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=15d2fb6fe04e5176abefbeb8d0118003&query=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                if (data.results && data.results.length > 0) {
+                    const movie = data.results[0];
+                    document.getElementById('m-title').value = movie.title || movie.original_title || query;
+                    document.getElementById('m-desc').value = movie.overview || "No overview available.";
+                    if (movie.poster_path) {
+                        document.getElementById('m-thumb').value = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                    }
+                    alert(`✅ Movie "${movie.title}" ka Data aur HD Poster Auto-Fill ho gaya! Ab bas video link daal kar save karein.`);
+                } else {
+                    alert("❌ Yeh movie TMDB par nahi mili. Naam ke spelling check karein.");
+                }
+            } catch (err) {
+                alert("TMDB Error: " + err.message);
+            } finally {
+                hideLoader();
+            }
+        };
+
+        // --- MOVIE MANAGEMENT (WITH MANUAL VIP & LIVE TOGGLES) ---
         window.saveMovie = async () => {
             const key = document.getElementById('edit-movie-key').value;
             const title = document.getElementById('m-title').value.trim();
@@ -735,10 +805,14 @@
             const category = document.getElementById('m-cat').value;
             const thumb = document.getElementById('m-thumb').value.trim();
             const url = document.getElementById('m-video').value.trim();
+            const isVip = document.getElementById('m-is-vip').checked;
+            const isLive = document.getElementById('m-is-live').checked;
 
             if (!title) return alert("Title is required!");
 
             const itemKey = key || 'mov_' + Date.now();
+            const existingViews = (key && dbData.movies[key]) ? (dbData.movies[key].views || 0) : 0;
+
             const movieObj = {
                 id: itemKey,
                 title: title,
@@ -747,6 +821,9 @@
                 category: category,
                 thumb: thumb || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300',
                 url: url,
+                isVip: isVip,
+                isLive: isLive,
+                views: existingViews,
                 hidden: false
             };
 
@@ -755,7 +832,7 @@
                 await set(ref(db, `movies/${itemKey}`), movieObj);
                 window.resetMovieForm();
                 alert("Movie saved to Firebase!");
-                window.nav(document.querySelectorAll('.nav-item')[5], 'list');
+                window.nav(document.querySelectorAll('.nav-item')[6], 'list');
             } catch (err) {
                 alert("Save Failed: " + err.message);
             } finally {
@@ -763,10 +840,12 @@
             }
         };
 
+// 🎬 RENDER MOVIES LIBRARY LIST (WITH VIP & LIVE BADGES)
         window.renderMoviesList = () => {
             const filterEl = document.getElementById('lib-filter');
             const filter = filterEl ? filterEl.value : 'all';
             const container = document.getElementById('movie-list-container');
+            if (!container) return;
             let html = '';
             const movies = dbData.movies || {};
 
@@ -780,8 +859,12 @@
                     <div class="item-card">
                         <img src="${m.thumb}">
                         <div class="item-info">
-                            <h4><span class="status-dot ${dotClass}"></span>${m.title}</h4>
-                            <p>${m.category} | ${m.desc ? m.desc.substring(0,25)+'...' : 'No Desc'}</p>
+                            <h4>
+                                <span class="status-dot ${dotClass}"></span>${m.title}
+                                ${m.isVip ? '<span style="color:#ffd700; font-size:10px; margin-left:4px;">👑 VIP</span>' : ''}
+                                ${m.isLive ? '<span style="color:#e50914; font-size:10px; margin-left:4px;">🔴 LIVE</span>' : ''}
+                            </h4>
+                            <p>${m.category || 'Movie'} | 🔥 ${m.views || 0} Views</p>
                         </div>
                         <div class="actions">
                             <i class="fa fa-edit" onclick="window.editMovie('${key}')" style="color:#f1c40f"></i>
@@ -803,16 +886,21 @@
             document.getElementById('m-thumb').value = m.thumb;
             document.getElementById('m-video').value = m.url;
             document.getElementById('m-cat').value = m.category;
-            window.nav(document.querySelectorAll('.nav-item')[4], 'add');
+            document.getElementById('m-is-vip').checked = !!m.isVip;
+            document.getElementById('m-is-live').checked = !!m.isLive;
+            window.nav(document.querySelectorAll('.nav-item')[5], 'add');
         };
 
         window.resetMovieForm = () => {
             document.getElementById('edit-movie-key').value = "";
+            document.getElementById('tmdb-search-input').value = "";
             document.getElementById('m-title').value = "";
             document.getElementById('m-desc').value = "";
             document.getElementById('m-order').value = "";
             document.getElementById('m-thumb').value = "";
             document.getElementById('m-video').value = "";
+            document.getElementById('m-is-vip').checked = false;
+            document.getElementById('m-is-live').checked = false;
         };
 
         // --- CATEGORY MANAGEMENT ---
@@ -1155,11 +1243,48 @@
             }
         };
 
+// 📈 DASHBOARD STATS COUNTER
         window.updateStats = () => {
             document.getElementById('stat-movies').innerText = Object.keys(dbData.movies || {}).length;
             document.getElementById('stat-channels').innerText = Object.keys(dbData.channels || {}).length;
             document.getElementById('stat-sliders').innerText = Object.keys(dbData.sliders || {}).length;
             document.getElementById('stat-cats').innerText = Object.keys(dbData.categories || {}).length;
+        };
+
+        // 📊 RENDER TOP MOST VIEWED ANALYTICS (DASHBOARD)
+        window.renderTopAnalytics = () => {
+            const container = document.getElementById('top-viewed-movies-list');
+            if (!container) return;
+
+            const movies = Object.values(dbData.movies || {});
+            if (movies.length === 0) {
+                container.innerHTML = '<p style="color:#666; font-size:12px; margin:0;">No view data yet.</p>';
+                return;
+            }
+
+            // Sabse zyada views wali movies ko upar lana (Top 5)
+            const sorted = movies.sort((a, b) => (parseInt(b.views) || 0) - (parseInt(a.views) || 0)).slice(0, 5);
+
+            let html = '';
+            sorted.forEach((m, idx) => {
+                const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+                html += `
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#181818; padding:8px 10px; border-radius:8px; margin-bottom:6px; border:1px solid #282828;">
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                        <span style="font-size:13px; font-weight:800;">${medal}</span>
+                        <img src="${m.thumb}" style="width:28px; height:38px; object-fit:cover; border-radius:4px;">
+                        <div style="overflow:hidden;">
+                            <div style="font-size:12px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">${m.title}</div>
+                            <div style="font-size:10px; color:#888;">${m.category || 'Movie'}</div>
+                        </div>
+                    </div>
+                    <span style="background:rgba(229,9,20,0.2); border:1px solid #e50914; color:#ff4d4d; font-size:10px; font-weight:800; padding:2px 8px; border-radius:12px; white-space:nowrap;">
+                        🔥 ${m.views || 0} Views
+                    </span>
+                </div>`;
+            });
+
+            container.innerHTML = html;
         };
 
         window.updateCatDropdowns = () => {
