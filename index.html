@@ -296,9 +296,13 @@
 
     <!-- 6. MOVIE LIBRARY -->
     <div id="list" class="page">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h3 style="margin:0;">Library</h3>
-            <select id="lib-filter" onchange="window.renderMoviesList()" style="width:130px; padding:6px; font-size:12px;"></select>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px;">
+            <h3 style="margin:0; font-size:15px;">Library</h3>
+            <!-- 🧹 1-CLICK ALL DUPLICATES CLEANER BUTTON -->
+            <button type="button" class="btn-set" onclick="window.cleanDuplicateMovies()" style="background:#e74c3c; padding:6px 10px; font-size:11px; border-radius:8px; display:flex; align-items:center; gap:5px;" title="Delete all double duplicate episodes">
+                <i class="fa fa-broom"></i> Clean Duplicates
+            </button>
+            <select id="lib-filter" onchange="window.renderMoviesList()" style="width:125px; padding:6px; font-size:12px;"></select>
         </div>
         <div id="movie-list-container"></div>
     </div>
