@@ -952,8 +952,8 @@
             alert(`✅ Kamyabi se ${links.length} Episodes add ho gaye!`);
         };
 
+        // 🚀 100% BULLETPROOF MOVIE & MULTI-EPISODES SAVE ENGINE
         window.saveMovie = async () => {
-            const key = document.getElementById('edit-movie-key').value;
             const title = document.getElementById('m-title').value.trim();
             const desc = document.getElementById('m-desc').value.trim();
             const order = parseInt(document.getElementById('m-order').value) || 0;
@@ -962,39 +962,57 @@
             const isVip = document.getElementById('m-is-vip').checked;
             const isLive = document.getElementById('m-is-live').checked;
 
-            if (!title) return alert("Title is required!");
+            if (!title) return alert("Pehle Title (Naam) likhein!");
 
             const posterUrl = thumb || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300';
+            const seriesBox = document.getElementById('series-episodes-box');
+            
+            // 🎯 CHECK: Kya Episodes Manager Screen Par Khula Hai?
+            const isSeriesMode = (window.currentUploadType === 'series') || (seriesBox && seriesBox.style.display !== 'none');
 
-            // 📺 CASE 1: DRAMA / WEB SERIES (MULTI EPISODES)
-            if (window.currentUploadType === 'series' && !key) {
+            // =======================================================
+            // 📺 CASE 1: DRAMA / WEB SERIES (MULTI-EPISODES GUARANTEED)
+            // =======================================================
+            if (isSeriesMode) {
+                let epList = [];
+
+                // 1. Inputs se links uthao
                 const epInputs = document.querySelectorAll('#episodes-list-container .ep-url-input');
-                const epList = [];
-                epInputs.forEach((inp, idx) => {
+                epInputs.forEach((inp) => {
                     const u = inp.value.trim();
-                    if (u) epList.push({ num: idx + 1, url: u });
+                    if (u) epList.push(u);
                 });
 
-                if (epList.length === 0) {
-                    return alert("Kam az kam 1 Episode ka link zaroor daalein!");
+                // 2. Agar user ne Bulk Paste box mein links daale hain to wo bhi uthao
+                const bulkVal = document.getElementById('bulk-links-input') ? document.getElementById('bulk-links-input').value.trim() : '';
+                if (bulkVal && epList.length === 0) {
+                    const bulkLines = bulkVal.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    epList = epList.concat(bulkLines);
                 }
 
-                showLoader();
+                if (epList.length === 0) {
+                    return alert("❌ Koi link nahi mila! Kam az kam 1 Episode ka link zaroor daalein.");
+                }
+
+                // Title se faltu "Episode" saaf karo taake double na ho jaye
+                const cleanBaseTitle = title.replace(/[\s\-\_\(\[]*(?:ep|episode|part|e)\s*[\.\:\#\-]?\s*\d+[\)\]]?/gi, '').trim();
+
                 try {
                     const updates = {};
                     const baseTimestamp = Date.now();
 
-                    // Tamam episodes ko Firebase mein batch update karein
-                    epList.forEach((ep, i) => {
-                        const epKey = `mov_${baseTimestamp}_${i + 1}`;
+                    // Tamam 1 se 50 episodes ko Firebase mein batch update karein
+                    epList.forEach((url, i) => {
+                        const epNum = i + 1;
+                        const epKey = `mov_${baseTimestamp}_${epNum}`;
                         updates[`movies/${epKey}`] = {
                             id: epKey,
-                            title: `${title} Episode ${ep.num}`,
-                            desc: desc,
-                            order: order + ep.num,
+                            title: `${cleanBaseTitle} Episode ${epNum}`,
+                            desc: desc || `Watch ${cleanBaseTitle} Episode ${epNum} in Full HD.`,
+                            order: order + epNum,
                             category: category,
                             thumb: posterUrl,
-                            url: ep.url,
+                            url: url,
                             isVip: isVip,
                             isLive: isLive,
                             views: 0,
@@ -1004,17 +1022,18 @@
 
                     await update(ref(db), updates);
                     window.resetMovieForm();
-                    alert(`🎉 Zabardast! "${title}" ke tamam ${epList.length} Episodes kamyabi se save ho gaye!`);
+                    alert(`🎉 Mubarak Ho! "${cleanBaseTitle}" ke tamam (${epList.length}) Episodes kamyabi se ban kar Firebase mein save ho gaye!`);
                     window.nav(document.querySelectorAll('.nav-item')[6], 'list');
                 } catch (err) {
-                    alert("Series Save Failed: " + err.message);
-                } finally {
-                    hideLoader();
+                    alert("Episodes Save Error: " + err.message);
                 }
                 return;
             }
 
-            // 🎬 CASE 2: NORMAL SINGLE MOVIE (OR EDITING)
+            // =======================================================
+            // 🎬 CASE 2: NORMAL SINGLE MOVIE (JAB SINGLE SELECT HO)
+            // =======================================================
+            const key = document.getElementById('edit-movie-key').value;
             const url = document.getElementById('m-video').value.trim();
             const itemKey = key || 'mov_' + Date.now();
             const existingViews = (key && dbData.movies[key]) ? (dbData.movies[key].views || 0) : 0;
@@ -1033,16 +1052,13 @@
                 hidden: false
             };
 
-            showLoader();
             try {
                 await set(ref(db, `movies/${itemKey}`), movieObj);
                 window.resetMovieForm();
-                alert("Movie saved to Firebase!");
+                alert("✅ Single Movie Kamyabi se Save Ho Gayi!");
                 window.nav(document.querySelectorAll('.nav-item')[6], 'list');
             } catch (err) {
                 alert("Save Failed: " + err.message);
-            } finally {
-                hideLoader();
             }
         };
 
