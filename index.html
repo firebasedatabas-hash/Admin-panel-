@@ -1079,7 +1079,7 @@
             window.setUploadType('single');
         };
 
-// 🎬 RENDER MOVIES LIBRARY LIST (WITH VIP & LIVE BADGES)
+// 🎬 RENDER MOVIES LIBRARY LIST (CATEGORY LOCKED + PERFECT 1, 2, 3... ORDER)
         window.renderMoviesList = () => {
             const filterEl = document.getElementById('lib-filter');
             const filter = filterEl ? filterEl.value : 'all';
@@ -1088,7 +1088,16 @@
             let html = '';
             const movies = dbData.movies || {};
 
-            Object.keys(movies).forEach(key => {
+            // 🔢 EPISODES KO NUMERICAL ASLI TARTEEB (1, 2, 3... 10, 11) SE SORT KAREIN
+            const sortedKeys = Object.keys(movies).sort((a, b) => {
+                const mA = movies[a];
+                const mB = movies[b];
+                const tA = (mA.title || '').toLowerCase();
+                const tB = (mB.title || '').toLowerCase();
+                return tA.localeCompare(tB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            sortedKeys.forEach(key => {
                 const m = movies[key];
                 if (!m) return;
                 if (filter === 'all' || m.category === filter) {
@@ -1112,7 +1121,7 @@
                     </div>`;
                 }
             });
-            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">No movies found.</p>';
+            container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">Is category mein koi content nahi mila.</p>';
         };
 
         window.editMovie = (key) => {
@@ -1424,18 +1433,32 @@
             container.innerHTML = html || '<p style="text-align:center;color:#666;padding:10px;">Filhal koi VIP Code nahi bana hua.</p>';
         };
 
-        // --- GENERAL ACTIONS ---
+        // --- GENERAL ACTIONS (INSTANT 0ms DELETE - SCREEN SE FORAN GAYAB) ---
         window.deleteItem = async (section, key) => {
-            if (confirm("Are you sure you want to delete this?")) {
-                showLoader();
-                try {
-                    await remove(ref(db, `${section}/${key}`));
-                    alert("Deleted successfully!");
-                } catch (err) {
-                    alert("Delete Failed: " + err.message);
-                } finally {
-                    hideLoader();
-                }
+            if (!confirm("Are you sure you want to delete this?")) return;
+
+            // 1. Screen aur Memory Cache se foran 0.001 second mein mita do
+            if (dbData[section] && dbData[section][key]) {
+                delete dbData[section][key];
+            }
+            try { 
+                localStorage.setItem('admin_fast_cache', JSON.stringify(dbData)); 
+            } catch(e){}
+
+            // 2. UI foran refresh karo (item usi waqt screen se gayab ho jayega)
+            if (section === 'movies') window.renderMoviesList();
+            else if (section === 'channels') window.renderChannels();
+            else if (section === 'sliders') window.renderSliders();
+            else if (section === 'categories') window.renderCategories();
+            else if (section === 'vip_codes') window.renderAdminVIPCodes();
+            window.updateStats();
+
+            // 3. Background mein Firebase Database se delete karein (Bina faltu alert popup ke)
+            try {
+                await remove(ref(db, `${section}/${key}`));
+            } catch (err) {
+                alert("Delete Failed: " + err.message);
+                if (typeof initFirebaseStream === 'function') initFirebaseStream();
             }
         };
 
@@ -1515,17 +1538,34 @@
             container.innerHTML = html;
         };
 
+        // 🔒 SMART CATEGORY MEMORY (DELETE HONE PAR FILTER "ALL" PAR NAHI BHAAGEGA)
         window.updateCatDropdowns = () => {
             const movieCat = document.getElementById('m-cat');
             const libFilter = document.getElementById('lib-filter');
+            
+            // User ki pehle se chuni hui category ko yaad rakhein
+            const savedFilter = libFilter ? libFilter.value : 'all';
+            const savedMovieCat = movieCat ? movieCat.value : '';
+
             let options = '';
             const categories = dbData.categories || {};
             Object.keys(categories).forEach(key => {
                 const cat = categories[key];
                 if (cat) options += `<option value="${cat.name}">${cat.name}</option>`;
             });
-            if (movieCat) movieCat.innerHTML = options || '<option value="">No categories</option>';
-            if (libFilter) libFilter.innerHTML = '<option value="all">All</option>' + options;
+
+            if (movieCat) {
+                movieCat.innerHTML = options || '<option value="">No categories</option>';
+                if (savedMovieCat) movieCat.value = savedMovieCat;
+            }
+
+            if (libFilter) {
+                libFilter.innerHTML = '<option value="all">All</option>' + options;
+                // Category ko wapas wahi lock karein jo user ne select ki thi
+                if (savedFilter && savedFilter !== 'all') {
+                    libFilter.value = savedFilter;
+                }
+            }
         };
 
         window.updateLimitDropdown = () => {
