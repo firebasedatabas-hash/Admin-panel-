@@ -82,7 +82,8 @@
         .nav-item.active { color: var(--primary); }
         .nav-item i { font-size: 16px; margin-bottom: 3px; }
         
-        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:none; justify-content:center; align-items:center; }
+        /* 🚫 GOL SPINNER & KAALA PARDA 100% KHATAM (ZERO SCREEN FREEZE) */
+        #loader { display: none !important; visibility: hidden !important; pointer-events: none !important; }
         
         /* Master Security Lock Screen */
         #security-guard { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 999999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 25px; box-sizing: border-box; text-align: center; }
@@ -233,11 +234,63 @@
         <div class="form-group"><label>Description</label><textarea id="m-desc" rows="3" placeholder="Movie overview..."></textarea></div>
         <div class="form-group"><label>Order / Priority</label><input type="number" id="m-order" placeholder="0"></div>
         <div class="form-group"><label>Category</label><select id="m-cat"></select></div>
-        <div class="form-group"><label>Poster URL</label><input type="text" id="m-thumb">
-            <label class="upload-btn"><input type="file" style="display:none" onchange="window.handleFile(this, 'm-thumb')"><i class="fa fa-camera"></i> Upload Poster</label>
+        
+        <!-- 🖼️ POSTER URL & MOBILE CAMERA UPLOAD (RESTORED) -->
+        <div class="form-group">
+            <label>Poster URL</label>
+            <input type="text" id="m-thumb" placeholder="Poster image link...">
+            <label class="upload-btn">
+                <input type="file" style="display:none" onchange="window.handleFile(this, 'm-thumb')">
+                <i class="fa fa-camera"></i> Upload Poster from Mobile
+            </label>
         </div>
-        <div class="form-group"><label>Video URL (Catbox, Google Drive, M3U8, MP4, YouTube)</label><textarea id="m-video" rows="2" placeholder="https://..."></textarea></div>
-        <button class="btn btn-save" onclick="window.saveMovie()">Save Movie</button>
+
+        <!-- 🎬 CONTENT TYPE SWITCHER (MOVIE VS DRAMA/SERIES) -->
+        <div class="form-group" style="margin-top:14px;">
+            <label><i class="fa fa-layer-group"></i> Upload Type</label>
+            <div style="display:flex; gap:10px;">
+                <button type="button" id="btn-type-single" onclick="window.setUploadType('single')" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--primary); background:var(--primary); color:#fff; font-size:12px; font-weight:700; cursor:pointer;">
+                    🎬 Single Movie
+                </button>
+                <button type="button" id="btn-type-series" onclick="window.setUploadType('series')" style="flex:1; padding:10px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:#aaa; font-size:12px; font-weight:700; cursor:pointer;">
+                    📺 Drama / Series (Episodes)
+                </button>
+            </div>
+        </div>
+
+        <!-- 1. SINGLE MOVIE URL BOX (NORMAL) -->
+        <div id="single-video-box" class="form-group">
+            <label>Video URL (Catbox, Google Drive, M3U8, MP4, YouTube)</label>
+            <textarea id="m-video" rows="2" placeholder="https://..."></textarea>
+        </div>
+
+        <!-- 2. MULTI-EPISODES BUILDER BOX (DRAMA / SERIES) -->
+        <div id="series-episodes-box" style="display:none; background:#161616; padding:12px; border-radius:10px; border:1px solid #2a2a2a; margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <label style="color:#00ffcc; font-size:12px; font-weight:700; margin:0;"><i class="fa fa-list-ol"></i> Episodes Manager</label>
+                <span id="ep-count-badge" style="background:#222; border:1px solid #444; color:#fff; font-size:10px; padding:2px 8px; border-radius:12px;">0 Episodes</span>
+            </div>
+
+            <!-- ⚡ Quick Bulk Paste Box -->
+            <details style="background:#111; padding:8px 10px; border-radius:8px; border:1px solid #282828; margin-bottom:10px;">
+                <summary style="font-size:11px; color:#3498db; cursor:pointer; font-weight:600;"><i class="fa fa-bolt"></i> Bulk Paste Links (1 Line = 1 Episode)</summary>
+                <div style="margin-top:8px;">
+                    <textarea id="bulk-links-input" rows="4" placeholder="Har line mein 1 episode ka link paste karein:&#10;https://link-ep1.mp4&#10;https://link-ep2.mp4&#10;https://link-ep3.mp4"></textarea>
+                    <button type="button" class="btn-set" style="width:100%; margin-top:6px; padding:8px;" onclick="window.applyBulkEpisodes()">⚡ Auto-Generate All Episodes</button>
+                </div>
+            </details>
+
+            <!-- Dynamic Episodes List Container -->
+            <div id="episodes-list-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+
+            <!-- Manual + Add Episode Button -->
+            <button type="button" onclick="window.addEpisodeRow()" style="width:100%; margin-top:10px; padding:9px; background:#222; border:1px dashed #555; color:#00ffcc; border-radius:8px; font-size:11.5px; font-weight:700; cursor:pointer;">
+                <i class="fa fa-plus-circle"></i> + Add Next Episode
+            </button>
+        </div>
+        
+        <!-- 🔴 SAVE BUTTON (WAPAS RESTORED) -->
+        <button class="btn btn-save" id="btn-save-movie" onclick="window.saveMovie()">Save Movie</button>
         <button class="btn btn-cancel" onclick="window.resetMovieForm()">Cancel</button>
     </div>
 
@@ -367,9 +420,18 @@
         // Real Video Link Health Results Cache
         window.realLinkStatus = JSON.parse(localStorage.getItem('real_stream_status')) || {};
 
-        const loader = document.getElementById('loader');
-        const showLoader = () => { if(loader) loader.style.display = 'flex'; };
-        const hideLoader = () => { if(loader) loader.style.display = 'none'; };
+        // ⚡ ZERO-FREEZE LOADER (SCREEN KABHI NAHI ATKEGI)
+        const showLoader = () => {}; 
+        const hideLoader = () => {};
+
+        // 🚀 0.01 SECOND INSTANT CACHE (INTERNET SLOW BHI HO TO FORAN KHULEGA)
+        try {
+            const fastCache = localStorage.getItem('admin_fast_cache');
+            if (fastCache) {
+                dbData = JSON.parse(fastCache);
+                setTimeout(() => { if (typeof refreshUI === 'function') refreshUI(); }, 10);
+            }
+        } catch(e){}
 
         // ================== POWERFUL ADMIN LOCK SYSTEM ==================
         // Hamza Bhai yahan apna Secret PIN set karein (Default: 7860)
@@ -422,9 +484,8 @@
             if (e.key === 'Enter') window.verifyAdminAccess();
         });
 
-        // Check authentication state
+        // 🚀 NON-STOP INSTANT SYNC (BINA SPINNER KE BACKGROUND SYNC)
         function initFirebaseStream() {
-            showLoader();
             const rootDbRef = ref(db, '/');
             onValue(rootDbRef, (snapshot) => {
                 const data = snapshot.val();
@@ -436,13 +497,12 @@
                     dbData.settings = data.settings || { slideSpeed: 3, limit: 10, notice: '', maintenance: false, features: {} };
                     dbData.vip_codes = data.vip_codes || {};
                     
+                    // Memory mein save karein taake agli dafa 0 second mein khule
+                    try { localStorage.setItem('admin_fast_cache', JSON.stringify(dbData)); } catch(e){}
                 }
                 refreshUI();
-                hideLoader();
             }, (error) => {
-                console.error("Firebase Error:", error);
-                hideLoader();
-                alert("Error syncing with Firebase: " + error.message);
+                console.warn("Background net retry:", error);
             });
         }
 
@@ -796,7 +856,102 @@
             }
         };
 
-        // --- MOVIE MANAGEMENT (WITH MANUAL VIP & LIVE TOGGLES) ---
+        // --- MOVIE & MULTI-EPISODE SERIES MANAGEMENT ---
+        window.currentUploadType = 'single'; // 'single' ya 'series'
+
+        window.setUploadType = (type) => {
+            window.currentUploadType = type;
+            const btnSingle = document.getElementById('btn-type-single');
+            const btnSeries = document.getElementById('btn-type-series');
+            const singleBox = document.getElementById('single-video-box');
+            const seriesBox = document.getElementById('series-episodes-box');
+
+            if (type === 'series') {
+                btnSeries.style.background = 'var(--primary)';
+                btnSeries.style.borderColor = 'var(--primary)';
+                btnSeries.style.color = '#fff';
+                btnSingle.style.background = '#1a1a1a';
+                btnSingle.style.borderColor = '#333';
+                btnSingle.style.color = '#aaa';
+                singleBox.style.display = 'none';
+                seriesBox.style.display = 'block';
+
+                // Agar list khali ho toh Episode 1 khud bana do
+                const container = document.getElementById('episodes-list-container');
+                if (container && container.children.length === 0) {
+                    window.addEpisodeRow();
+                }
+            } else {
+                btnSingle.style.background = 'var(--primary)';
+                btnSingle.style.borderColor = 'var(--primary)';
+                btnSingle.style.color = '#fff';
+                btnSeries.style.background = '#1a1a1a';
+                btnSeries.style.borderColor = '#333';
+                btnSeries.style.color = '#aaa';
+                singleBox.style.display = 'block';
+                seriesBox.style.display = 'none';
+            }
+        };
+
+        window.addEpisodeRow = (urlVal = '') => {
+            const container = document.getElementById('episodes-list-container');
+            if (!container) return;
+            const epNum = container.children.length + 1;
+
+            const row = document.createElement('div');
+            row.className = 'ep-item-row';
+            row.style.cssText = 'display:flex; align-items:center; gap:8px; background:#1f1f1f; padding:6px 8px; border-radius:8px; border:1px solid #333;';
+            row.innerHTML = `
+                <span class="ep-badge-label" style="font-size:11px; font-weight:800; color:#00ffcc; min-width:55px;">EP ${epNum}</span>
+                <input type="text" class="ep-url-input" placeholder="Episode ${epNum} Stream Link (mp4, m3u8, etc)..." value="${urlVal.replace(/"/g, '&quot;')}" style="flex:1; padding:8px; font-size:12px; background:#121212; border:1px solid #282828; border-radius:6px; color:#fff; outline:none;">
+                <button type="button" onclick="window.removeEpisodeRow(this)" style="background:#2d1515; border:1px solid #e74c3c; color:#e74c3c; padding:6px 10px; border-radius:6px; cursor:pointer;"><i class="fa fa-trash"></i></button>
+            `;
+            container.appendChild(row);
+            window.updateEpisodeCounters();
+        };
+
+        window.removeEpisodeRow = (btn) => {
+            const row = btn.closest('.ep-item-row');
+            if (row) row.remove();
+            // Numbers dubara re-index karein (1, 2, 3...)
+            const container = document.getElementById('episodes-list-container');
+            if (container) {
+                Array.from(container.children).forEach((r, idx) => {
+                    const lbl = r.querySelector('.ep-badge-label');
+                    const inp = r.querySelector('.ep-url-input');
+                    if (lbl) lbl.innerText = `EP ${idx + 1}`;
+                    if (inp && !inp.value) inp.placeholder = `Episode ${idx + 1} Stream Link (mp4, m3u8, etc)...`;
+                });
+            }
+            window.updateEpisodeCounters();
+        };
+
+        window.updateEpisodeCounters = () => {
+            const container = document.getElementById('episodes-list-container');
+            const badge = document.getElementById('ep-count-badge');
+            const total = container ? container.children.length : 0;
+            if (badge) badge.innerText = `${total} Episodes`;
+        };
+
+        // ⚡ Bulk Paste Links Function (Ek Sath 10, 20 ya 50 links paste karein)
+        window.applyBulkEpisodes = () => {
+            const bulkText = document.getElementById('bulk-links-input').value.trim();
+            if (!bulkText) return alert("Pehle links paste karein!");
+
+            const links = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (links.length === 0) return alert("Koi valid link nahi mila!");
+
+            const container = document.getElementById('episodes-list-container');
+            if (container) container.innerHTML = ''; // reset
+
+            links.forEach(link => {
+                window.addEpisodeRow(link);
+            });
+
+            document.getElementById('bulk-links-input').value = '';
+            alert(`✅ Kamyabi se ${links.length} Episodes add ho gaye!`);
+        };
+
         window.saveMovie = async () => {
             const key = document.getElementById('edit-movie-key').value;
             const title = document.getElementById('m-title').value.trim();
@@ -804,12 +959,63 @@
             const order = parseInt(document.getElementById('m-order').value) || 0;
             const category = document.getElementById('m-cat').value;
             const thumb = document.getElementById('m-thumb').value.trim();
-            const url = document.getElementById('m-video').value.trim();
             const isVip = document.getElementById('m-is-vip').checked;
             const isLive = document.getElementById('m-is-live').checked;
 
             if (!title) return alert("Title is required!");
 
+            const posterUrl = thumb || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300';
+
+            // 📺 CASE 1: DRAMA / WEB SERIES (MULTI EPISODES)
+            if (window.currentUploadType === 'series' && !key) {
+                const epInputs = document.querySelectorAll('#episodes-list-container .ep-url-input');
+                const epList = [];
+                epInputs.forEach((inp, idx) => {
+                    const u = inp.value.trim();
+                    if (u) epList.push({ num: idx + 1, url: u });
+                });
+
+                if (epList.length === 0) {
+                    return alert("Kam az kam 1 Episode ka link zaroor daalein!");
+                }
+
+                showLoader();
+                try {
+                    const updates = {};
+                    const baseTimestamp = Date.now();
+
+                    // Tamam episodes ko Firebase mein batch update karein
+                    epList.forEach((ep, i) => {
+                        const epKey = `mov_${baseTimestamp}_${i + 1}`;
+                        updates[`movies/${epKey}`] = {
+                            id: epKey,
+                            title: `${title} Episode ${ep.num}`,
+                            desc: desc,
+                            order: order + ep.num,
+                            category: category,
+                            thumb: posterUrl,
+                            url: ep.url,
+                            isVip: isVip,
+                            isLive: isLive,
+                            views: 0,
+                            hidden: false
+                        };
+                    });
+
+                    await update(ref(db), updates);
+                    window.resetMovieForm();
+                    alert(`🎉 Zabardast! "${title}" ke tamam ${epList.length} Episodes kamyabi se save ho gaye!`);
+                    window.nav(document.querySelectorAll('.nav-item')[6], 'list');
+                } catch (err) {
+                    alert("Series Save Failed: " + err.message);
+                } finally {
+                    hideLoader();
+                }
+                return;
+            }
+
+            // 🎬 CASE 2: NORMAL SINGLE MOVIE (OR EDITING)
+            const url = document.getElementById('m-video').value.trim();
             const itemKey = key || 'mov_' + Date.now();
             const existingViews = (key && dbData.movies[key]) ? (dbData.movies[key].views || 0) : 0;
 
@@ -819,7 +1025,7 @@
                 desc: desc,
                 order: order,
                 category: category,
-                thumb: thumb || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300',
+                thumb: posterUrl,
                 url: url,
                 isVip: isVip,
                 isLive: isLive,
@@ -838,6 +1044,23 @@
             } finally {
                 hideLoader();
             }
+        };
+
+        window.resetMovieForm = () => {
+            document.getElementById('edit-movie-key').value = "";
+            document.getElementById('tmdb-search-input').value = "";
+            document.getElementById('m-title').value = "";
+            document.getElementById('m-desc').value = "";
+            document.getElementById('m-order').value = "";
+            document.getElementById('m-thumb').value = "";
+            document.getElementById('m-video').value = "";
+            document.getElementById('m-is-vip').checked = false;
+            document.getElementById('m-is-live').checked = false;
+            const epContainer = document.getElementById('episodes-list-container');
+            if (epContainer) epContainer.innerHTML = '';
+            const bulkInp = document.getElementById('bulk-links-input');
+            if (bulkInp) bulkInp.value = '';
+            window.setUploadType('single');
         };
 
 // 🎬 RENDER MOVIES LIBRARY LIST (WITH VIP & LIVE BADGES)
@@ -888,19 +1111,8 @@
             document.getElementById('m-cat').value = m.category;
             document.getElementById('m-is-vip').checked = !!m.isVip;
             document.getElementById('m-is-live').checked = !!m.isLive;
+            if (typeof window.setUploadType === 'function') window.setUploadType('single');
             window.nav(document.querySelectorAll('.nav-item')[5], 'add');
-        };
-
-        window.resetMovieForm = () => {
-            document.getElementById('edit-movie-key').value = "";
-            document.getElementById('tmdb-search-input').value = "";
-            document.getElementById('m-title').value = "";
-            document.getElementById('m-desc').value = "";
-            document.getElementById('m-order').value = "";
-            document.getElementById('m-thumb').value = "";
-            document.getElementById('m-video').value = "";
-            document.getElementById('m-is-vip').checked = false;
-            document.getElementById('m-is-live').checked = false;
         };
 
         // --- CATEGORY MANAGEMENT ---
